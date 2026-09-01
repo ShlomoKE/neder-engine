@@ -1,0 +1,48 @@
+name: Licencia de prueba
+description: Pide tu licencia gratuita de 30 días (no comercial, un dispositivo)
+title: "Licencia de prueba"
+labels: ["licencia-prueba"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        La licencia se ata al identificador de **tu** GPU, así que primero
+        descarga el motor desde [Releases](../releases) y pídele el tuyo:
+
+        ```
+        docker load < neder-acelerador-1.1.tar.gz
+        docker run --rm --runtime nvidia neder/acelerador:1.1 identificador
+        ```
+
+        Las licencias se firman a mano una o dos veces al día — recibirás la
+        tuya como respuesta aquí mismo, con la notificación normal de GitHub.
+  - type: input
+    id: idgpu
+    attributes:
+      label: Identificador de tu GPU
+      description: Los 32 caracteres hexadecimales que imprime el comando de arriba
+      placeholder: 1f02f1ca03a65ea599e471fff33b3571
+    validations:
+      required: true
+  - type: input
+    id: equipo
+    attributes:
+      label: Tu equipo
+      description: Qué Jetson es (opcional, ayuda a priorizar soporte)
+      placeholder: Orin Nano Super 8 GB, JetPack 6.2
+    validations:
+      required: false
+  - type: textarea
+    id: uso
+    attributes:
+      label: Para qué lo quieres probar
+      description: Opcional — modelo que corres, proyecto, etc.
+    validations:
+      required: false
+  - type: checkboxes
+    id: terminos
+    attributes:
+      label: Términos de la prueba
+      options:
+        - label: Entiendo que la licencia dura 30 días, es solo para uso no comercial, y vale para un único dispositivo (al caducar, el motor vuelve solo al camino normal de llama.cpp).
+          required: true
