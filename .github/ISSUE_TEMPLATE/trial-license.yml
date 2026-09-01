@@ -1,0 +1,48 @@
+name: Trial license
+description: Request your free 30-day trial license (non-commercial, one device)
+title: "Trial license request"
+labels: ["licencia-prueba"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The license binds to **your** GPU's ID, so first download the engine
+        from [Releases](../releases) and ask for it:
+
+        ```
+        docker load < neder-acelerador-1.1.tar.gz
+        docker run --rm --runtime nvidia neder/acelerador:1.1 identificador
+        ```
+
+        Licenses are signed by hand once or twice a day — yours will arrive as
+        a reply right here, with GitHub's normal notification.
+  - type: input
+    id: idgpu
+    attributes:
+      label: Your GPU identifier
+      description: The 32 hex characters printed by the command above
+      placeholder: 1f02f1ca03a65ea599e471fff33b3571
+    validations:
+      required: true
+  - type: input
+    id: equipo
+    attributes:
+      label: Your device
+      description: Which Jetson it is (optional, helps prioritize support)
+      placeholder: Orin Nano Super 8 GB, JetPack 6.2
+    validations:
+      required: false
+  - type: textarea
+    id: uso
+    attributes:
+      label: What you want to try it on
+      description: Optional — the model you run, your project, etc.
+    validations:
+      required: false
+  - type: checkboxes
+    id: terminos
+    attributes:
+      label: Trial terms
+      options:
+        - label: I understand the license lasts 30 days, is for non-commercial use only, and is valid for a single device (on expiry, the engine falls back on its own to the normal llama.cpp path).
+          required: true

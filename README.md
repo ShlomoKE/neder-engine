@@ -1,128 +1,133 @@
+*[Versión en español](README.es.md)*
+
 # Neder Engine
 
-Acelerador de inferencia para **Jetson Orin**. Hace el decode de LLMs y VLMs
-cuantizados entre un **40 % y un 47 % más rápido**, con la misma calidad
-medida, sin tocar tu modelo. Se instala con `docker load`.
+Inference accelerator for **Jetson Orin**. Makes quantized LLM/VLM decoding
+**40–47 % faster** with the same measured quality, without touching your model.
+Installs with `docker load`.
 
 ```
-sin acelerar      73.33 t/s
-con Neder        116.34 t/s
+without accel     73.33 t/s
+with Neder       116.34 t/s
 ────────────────────────────────
-1.59× — medido por el instalador en un Orin Nano Super
+1.59× — measured by the installer on an Orin Nano Super
 ```
 
-## Medido en cinco arquitecturas
+## Measured across five architectures
 
-Decode, `Q4_K_M` sin convertir nada. Incluye una familia sin parentesco con
-Qwen y dos modelos solo de texto, para que no parezca afinado a un caso:
+Decode, `Q4_K_M`, no conversion. Includes one family unrelated to Qwen and two
+text-only models, so it doesn't look tuned to a single case:
 
-| modelo | familia | llama.cpp | con Neder | factor |
+| model | family | llama.cpp | with Neder | factor |
 |---|---|---|---|---|
-| TinyLlama-1.1B | Llama, solo texto | 63.12 t/s | **90.80** | **1.44×** |
+| TinyLlama-1.1B | Llama, text-only | 63.12 t/s | **90.80** | **1.44×** |
 | SmolVLM2-2.2B | SmolLM + SigLIP | 36.98 | **52.38** | **1.42×** |
 | Qwen3-VL-2B | Qwen3-VL | 35.57 | **50.82** | **1.43×** |
 | Qwen2.5-VL-3B | Qwen2.5-VL | 22.90 | **33.49** | **1.46×** |
-| Qwen3-4B | Qwen3, solo texto | 17.25 | **25.32** | **1.47×** |
+| Qwen3-4B | Qwen3, text-only | 17.25 | **25.32** | **1.47×** |
 
-En producción real —con la torre de visión cargada al lado— **30.36 → 38.73
-t/s (1.28×)**. Damos los dos números porque un banco aislado siempre sale más
-favorable que una máquina haciendo su trabajo.
+In real production — with a vision tower loaded alongside — **30.36 → 38.73
+t/s (1.28×)**. We publish both numbers because an isolated benchmark always
+looks better than a machine doing its actual job.
 
-## Contra TensorRT Edge-LLM de NVIDIA
+## Versus NVIDIA's TensorRT Edge-LLM
 
-Mismo Jetson, mismo modelo, 50 iteraciones, 3 repeticiones, TensorRT v0.9.0:
+Same Jetson, same model, 50 iterations, 3 repetitions, TensorRT v0.9.0:
 
-| contexto | llama.cpp | **Neder** | TensorRT v0.9.0 | ventaja |
+| context | llama.cpp | **Neder** | TensorRT v0.9.0 | advantage |
 |---|---|---|---|---|
 | 0 | 71.84 | **115.55** | 87.53 ± 0.76 | **1.32×** |
 | 128 | 74.61 | **126.39** | 88.73 ± 2.48 | **1.42×** |
 | 512 | 70.89 | **115.61** | 89.47 ± 3.01 | **1.29×** |
 | 1000 | 67.21 | **106.55** | 85.00 ± 2.46 | **1.25×** |
 
-Tres advertencias, porque una comparación que solo gana no es creíble:
+Three caveats, because a comparison that only wins isn't credible:
 
-- **INT4 AWQ y `Q4_K_M` no prometen lo mismo** — AWQ calibra con datos y
-  produce un modelo nuevo que hay que revalidar; nosotros corremos tu GGUF tal
-  cual. Y la calibración no es exclusiva suya: `llama-imatrix` (incluido en la
-  imagen) hace lo mismo en tu caja — medido: **4.5 % mejor perplejidad, misma
-  aceleración** (1.583× plano, 1.585× calibrado).
-- **Medimos contra una TensorRT recortada**: sus kernels nuevos piden CUDA 12.8
-  y JetPack 6.2 trae 12.6 (su receta oficial para JetPack 6.2 no enlaza tal
-  cual está documentada). Con JetPack 7 podría acortar. No está medido y no se
-  afirma.
-- **Este número bajó**: contra la v0.6.0 dábamos 1.67×–1.86×; NVIDIA mejoró un
-  32 % en tres releases. Un número que caduca se marca, no se borra.
+- **INT4 AWQ and `Q4_K_M` don't promise the same thing** — AWQ calibrates on
+  data and produces a new model you must re-validate; we run your GGUF as-is.
+  And calibration isn't exclusive to their pipeline: `llama-imatrix` (shipped
+  in the image) does the same on your box — measured: **4.5 % better
+  perplexity, identical speedup** (1.583× plain vs 1.585× calibrated).
+- **We measured against a reduced TensorRT**: its new kernels require CUDA
+  12.8 and JetPack 6.2 ships 12.6 (their official JetPack 6.2 recipe doesn't
+  link as documented). On JetPack 7 the gap could narrow. Not measured, not
+  claimed.
+- **This number went down**: against v0.6.0 we reported 1.67×–1.86×; NVIDIA
+  improved 32 % in three releases. A number that expires gets marked, not
+  erased.
 
-Aparte de la velocidad: poner en marcha TensorRT Edge-LLM en JetPack 6.2 nos
-costó **un día entero** (versiones que no compilan, doc oficial que no enlaza,
-re-exports forzados en una GPU x86 alquilada, 20 parches a mano a su cadena de
-exportación). Esto es `docker load` y arrancar.
+Beyond speed: getting TensorRT Edge-LLM running on JetPack 6.2 cost us **a
+full day** (versions that don't compile, official docs that don't link, forced
+re-exports on a rented x86 GPU, 20 hand-patches to their export chain). This
+is `docker load` and go.
 
-## Calidad: lo que se garantiza exactamente
+## Quality: exactly what is guaranteed
 
-No toca tus pesos y calcula la misma fórmula que `llama.cpp`. Medido por el
-propio camino del kernel: perplejidad **20.1092 con él contra 20.1130 sin él —
-0.02 %**, 37 veces menos de lo que `llama.cpp` cambia entre sus propios modos
-de evaluación. El texto normalmente coincide byte a byte; en un casi-empate del
-muestreo greedy (medimos un caso: dos candidatos a 0.06 de logprob) puede caer
-al otro lado, igual que entre los backends CPU y CUDA de `llama.cpp`. Ninguna
-salida es «más correcta», y con temperatura real la distinción es inobservable.
+It doesn't touch your weights and computes the same formula as `llama.cpp`.
+Measured through the kernel's own path: perplexity **20.1092 with it vs
+20.1130 without — 0.02 %**, which is 37× less than `llama.cpp` shifts between
+its own evaluation modes. Generated text normally matches byte for byte; on a
+near-tie under greedy sampling (we measured one case: two candidates 0.06
+logprob apart) it can land on the other side — exactly like llama.cpp's own
+CPU vs CUDA backends. Neither output is "more correct", and at real
+temperatures the distinction is unobservable.
 
-## Dónde NO funciona
+## Where it does NOT work
 
-Todo medido, no supuesto:
+All measured, none assumed:
 
-- **GPUs de centro de datos: pierde.** En una A100 da 0.69×–0.79× — la
-  geometría está elegida para los 8 SMs del Orin; una A100 tiene 108. No se
-  vende ahí.
-- **Solo familia Orin (`sm_87`)**: Nano, NX y AGX sin recompilar. Jetson Thor
-  (`sm_110`) no está cubierto.
-- **Solo decode.** El prefill ya usa tensor cores y va 55× más rápido por
-  token; no hay nada que ganar ahí.
-- **No acelera detección** (YOLO, DETR…): eso es matriz–matriz con tensor
-  cores; esto es un kernel matriz–vector.
+- **Datacenter GPUs: it loses.** On an A100 it does 0.69×–0.79× — the geometry
+  is chosen for the Orin's 8 SMs; an A100 has 108. Not sold there.
+- **Orin family only (`sm_87`)**: Nano, NX and AGX with the same binary.
+  Jetson Thor (`sm_110`) is not covered.
+- **Decode only.** Prefill already runs on tensor cores 55× faster per token;
+  there is nothing to gain there.
+- **Doesn't accelerate detection** (YOLO, DETR…): that's matrix–matrix on
+  tensor cores; this is a matrix–vector kernel.
 
-## Pruébalo gratis — 30 días, no comercial, un dispositivo
+## Try it free — 30 days, non-commercial, one device
 
-1. **Descarga** el motor desde [Releases](../../releases) y cárgalo:
+1. **Download** the engine from [Releases](../../releases) and load it:
    ```
    docker load < neder-acelerador-1.1.tar.gz
    ```
-2. **Pide tu identificador** (es a lo que se ata la licencia):
+2. **Get your device ID** (the license binds to it):
    ```
    docker run --rm --runtime nvidia neder/acelerador:1.1 identificador
    ```
-3. **Abre un issue** con la plantilla [Licencia de prueba](../../issues/new/choose)
-   pegando ese identificador. Las licencias se firman a mano una o dos veces al
-   día; recibirás la tuya como respuesta en el issue.
-4. **Móntala y mide en tu propia máquina** — no te creas las tablas de arriba:
+3. **Open an issue** using the [Trial license](../../issues/new/choose)
+   template and paste that ID. Licenses are signed by hand once or twice a
+   day; yours arrives as a reply on the issue.
+4. **Mount it and measure on your own machine** — don't take the tables above
+   on faith:
    ```
    mkdir -p ~/neder && cp licencia ~/neder/
    docker run -it --rm --runtime nvidia \
        -v ~/neder:/etc/neder:ro \
-       -v /ruta/a/tus/modelos:/modelos:ro \
-       neder/acelerador:1.1 instalar /modelos/tu-modelo.gguf
+       -v /path/to/your/models:/modelos:ro \
+       neder/acelerador:1.1 instalar /modelos/your-model.gguf
    ```
 
-Al caducar no se rompe nada: el motor se repliega solo al camino normal de
-`llama.cpp` y tu servicio sigue, sin la ganancia. La licencia comercial es el
-mismo fichero con otra fecha — escríbenos en un issue o al correo del perfil.
+When it expires nothing breaks: the engine falls back on its own to the normal
+`llama.cpp` path and your service keeps running, minus the gain. A commercial
+license is the same file with a different date — reach out in an issue or via
+the profile email.
 
-## Requisitos
+## Requirements
 
 | | |
 |---|---|
-| Hardware | Jetson Orin `sm_87` — Nano, NX o AGX |
-| Sistema | JetPack 6.x / L4T R36 · CUDA 12.6 · runtime `nvidia` |
-| Formatos | `Q8_0` · `Q4_0` · `Q4_K` · `Q6_K` (un `Q4_K_M` queda cubierto 197/197) |
-| Memoria | +388 MB con repaquetado en sitio |
-| Instalador | `docker run … instalar` — revisa la caja, no cambia nada, y mide |
+| Hardware | Jetson Orin `sm_87` — Nano, NX or AGX |
+| System | JetPack 6.x / L4T R36 · CUDA 12.6 · `nvidia` runtime |
+| Formats | `Q8_0` · `Q4_0` · `Q4_K` · `Q6_K` (a `Q4_K_M` is covered 197/197) |
+| Memory | +388 MB with in-place repacking |
+| Installer | `docker run … instalar` — checks the box, changes nothing, and measures |
 
-Todas las cifras se midieron en un Jetson Orin Nano Super (8 GB) con el reloj
-de GPU verificado a 1020 MHz durante cada corrida.
+All figures were measured on a Jetson Orin Nano Super (8 GB) with the GPU
+clock verified at 1020 MHz during every run.
 
 ---
 
-*Binario propietario con kernels cifrados; licencia por dispositivo. Este repo
-distribuye el producto y recibe las solicitudes — el código fuente no es
-público.*
+*Proprietary binary with encrypted kernels; per-device licensing. This repo
+distributes the product and receives requests — the source code is not
+public.*
