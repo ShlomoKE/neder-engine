@@ -85,7 +85,7 @@ All measured, none assumed:
 - **Doesn't accelerate detection** (YOLO, DETR…): that's matrix–matrix on
   tensor cores; this is a matrix–vector kernel.
 
-## Try it free — 30 days, non-commercial, one device
+## Try it free — 5 days, non-commercial, one device
 
 One command, on the Jetson:
 

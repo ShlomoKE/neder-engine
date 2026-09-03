@@ -84,7 +84,7 @@ Todo medido, no supuesto:
 - **No acelera detección** (YOLO, DETR…): eso es matriz–matriz con tensor
   cores; esto es un kernel matriz–vector.
 
-## Pruébalo gratis — 30 días, no comercial, un dispositivo
+## Pruébalo gratis — 5 días, no comercial, un dispositivo
 
 Un comando, en el Jetson:
 
