@@ -86,25 +86,31 @@ Todo medido, no supuesto:
 
 ## Pruébalo gratis — 30 días, no comercial, un dispositivo
 
-1. **Descarga** el motor desde [Releases](../../releases) y cárgalo:
-   ```
-   docker load < neder-acelerador-1.1.tar.gz
-   ```
-2. **Pide tu identificador** (es a lo que se ata la licencia):
-   ```
-   docker run --rm --runtime nvidia neder/acelerador:1.1 identificador
-   ```
-3. **Abre un issue** con la plantilla [Licencia de prueba](../../issues/new/choose)
-   pegando ese identificador. Las licencias se firman a mano una o dos veces al
-   día; recibirás la tuya como respuesta en el issue.
-4. **Móntala y mide en tu propia máquina** — no te creas las tablas de arriba:
-   ```
-   mkdir -p ~/neder && cp licencia ~/neder/
-   docker run -it --rm --runtime nvidia \
-       -v ~/neder:/etc/neder:ro \
-       -v /ruta/a/tus/modelos:/modelos:ro \
-       neder/acelerador:1.1 instalar /modelos/tu-modelo.gguf
-   ```
+Un comando, en el Jetson:
+
+```
+curl -fsSL https://neder.kesheratmex.workers.dev/instalar | bash
+```
+
+Baja el motor (1.4 GB, con suma verificada y reanudable), lo carga en docker,
+firma tu licencia de prueba **al instante** (te pide el correo ahí mismo en la
+terminal), encuentra los modelos GGUF de tu caja — u ofrece uno de prueba de
+0.4 GB — y mide la aceleración con y sin el motor, en tu propia máquina. Al
+final puede dejarte un **servidor compatible OpenAI** ya corriendo, acelerado:
+apunta tu app o tu agente a `http://<jetson>:8080/v1`.
+
+¿Traes un agente en la caja? Dale esto (cero preguntas):
+
+```
+curl -fsSL https://neder.kesheratmex.workers.dev/instalar | NEDER_CORREO=tu@correo.com bash
+```
+
+Desinstalar es el comando espejo — quita todo lo que puso el instalador y no
+toca nada más:
+
+```
+curl -fsSL https://neder.kesheratmex.workers.dev/uninstall | bash
+```
 
 Al caducar no se rompe nada: el motor se repliega solo al camino normal de
 `llama.cpp` y tu servicio sigue, sin la ganancia. La licencia comercial es el

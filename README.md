@@ -87,31 +87,36 @@ All measured, none assumed:
 
 ## Try it free — 30 days, non-commercial, one device
 
-1. **Download** the engine from [Releases](../../releases) and load it:
-   ```
-   docker load < neder-acelerador-1.1.tar.gz
-   ```
-2. **Get your device ID** (the license binds to it):
-   ```
-   docker run --rm --runtime nvidia neder/acelerador:1.1 identificador
-   ```
-3. **Open an issue** using the [Trial license](../../issues/new/choose)
-   template and paste that ID. Licenses are signed by hand once or twice a
-   day; yours arrives as a reply on the issue.
-4. **Mount it and measure on your own machine** — don't take the tables above
-   on faith:
-   ```
-   mkdir -p ~/neder && cp licencia ~/neder/
-   docker run -it --rm --runtime nvidia \
-       -v ~/neder:/etc/neder:ro \
-       -v /path/to/your/models:/modelos:ro \
-       neder/acelerador:1.1 instalar /modelos/your-model.gguf
-   ```
+One command, on the Jetson:
 
-When it expires nothing breaks: the engine falls back on its own to the normal
-`llama.cpp` path and your service keeps running, minus the gain. A commercial
-license is the same file with a different date — reach out in an issue or via
-the profile email.
+```
+curl -fsSL https://neder.kesheratmex.workers.dev/instalar | bash
+```
+
+It downloads the engine (1.4 GB, checksum-verified, resumable), loads it into
+docker, signs your trial license **instantly** (it asks for your email right
+in the terminal), finds the GGUF models on your box — or offers a 0.4 GB test
+model — and measures the speedup with and without the engine, on your own
+machine. At the end it can leave an **OpenAI-compatible server** running,
+already accelerated: point your app or agent at `http://<jetson>:8080/v1`.
+
+Running an agent on the box? Give it this instead (zero questions):
+
+```
+curl -fsSL https://neder.kesheratmex.workers.dev/instalar | NEDER_CORREO=you@example.com bash
+```
+
+Uninstalling is the mirror command — it removes everything the installer put
+on the box and touches nothing else:
+
+```
+curl -fsSL https://neder.kesheratmex.workers.dev/uninstall | bash
+```
+
+When the trial expires nothing breaks: the engine falls back on its own to the
+normal `llama.cpp` path and your service keeps running, minus the gain. A
+commercial license is the same file with a different date — reach out in an
+issue or via the profile email.
 
 ## Requirements
 
